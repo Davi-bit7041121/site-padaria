@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Jogo do Quadrado</title>
+  <title>Jogo do Quadrado Desafiador</title>
   <style>
     body {
       display: flex; justify-content: center; align-items: center;
@@ -15,6 +15,7 @@
       width: 300px; height: 300px;
       background: #61dafb;
       border-radius: 10px;
+      margin-bottom: 20px;
     }
     #target {
       position: absolute;
@@ -22,25 +23,60 @@
       background: #ff4757;
       border-radius: 8px;
       cursor: pointer;
+      transition: width 0.3s, height 0.3s;
     }
-    #score {
-      margin-top: 20px; font-size: 24px;
+    #score, #timer {
+      font-size: 24px;
+      margin: 5px 0;
+    }
+    #endScreen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+    #restartBtn {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #restartBtn:hover {
+      background-color: #45a049;
     }
   </style>
 </head>
 <body>
 
-  <h1>Jogo do Quadrado</h1>
+  <h1>Jogo do Quadrado Desafiador</h1>
   <div id="gameArea">
     <div id="target"></div>
   </div>
   <div id="score">Pontuação: 0</div>
+  <div id="timer">Tempo: 30s</div>
+
+  <div id="endScreen">
+    <h2>Fim do jogo!</h2>
+    <p id="finalScore"></p>
+    <button id="restartBtn">Jogar de novo</button>
+  </div>
 
   <script>
     const target = document.getElementById('target');
     const gameArea = document.getElementById('gameArea');
     const scoreDisplay = document.getElementById('score');
+    const timerDisplay = document.getElementById('timer');
+    const endScreen = document.getElementById('endScreen');
+    const finalScore = document.getElementById('finalScore');
+    const restartBtn = document.getElementById('restartBtn');
+
     let score = 0;
+    let timeLeft = 30;
+    let intervalId;
+    let moveInterval = 1000; // intervalo inicial para mover o quadrado
 
     function moveTarget() {
       const maxX = gameArea.clientWidth - target.offsetWidth;
@@ -51,15 +87,69 @@
       target.style.top = randomY + 'px';
     }
 
+    function updateTargetSize() {
+      // O quadrado vai diminuindo de tamanho conforme a pontuação aumenta
+      let newSize = 50 - score * 2;
+      if (newSize < 20) newSize = 20; // tamanho mínimo
+      target.style.width = newSize + 'px';
+      target.style.height = newSize + 'px';
+    }
+
+    function updateMoveInterval() {
+      // Quanto maior a pontuação, mais rápido o quadrado se move (intervalo menor)
+      moveInterval = 1000 - score * 30;
+      if (moveInterval < 300) moveInterval = 300; // velocidade máxima
+      clearInterval(intervalId);
+      intervalId = setInterval(moveTarget, moveInterval);
+    }
+
+    function gameOver() {
+      clearInterval(intervalId);
+      clearInterval(timerId);
+      target.style.display = 'none';
+      endScreen.style.display = 'flex';
+      finalScore.textContent = 'Sua pontuação final foi: ' + score;
+      timerDisplay.textContent = 'Tempo: 0s';
+    }
+
+    function restartGame() {
+      score = 0;
+      timeLeft = 30;
+      target.style.display = 'block';
+      endScreen.style.display = 'none';
+      scoreDisplay.textContent = 'Pontuação: ' + score;
+      timerDisplay.textContent = 'Tempo: ' + timeLeft + 's';
+      updateTargetSize();
+      moveTarget();
+      updateMoveInterval();
+      timerId = setInterval(countdown, 1000);
+    }
+
+    function countdown() {
+      timeLeft--;
+      timerDisplay.textContent = 'Tempo: ' + timeLeft + 's';
+      if (timeLeft <= 0) {
+        gameOver();
+      }
+    }
+
     target.addEventListener('click', () => {
       score++;
       scoreDisplay.textContent = 'Pontuação: ' + score;
+      updateTargetSize();
+      updateMoveInterval();
       moveTarget();
     });
 
-    // Move o quadrado pela primeira vez
+    restartBtn.addEventListener('click', () => {
+      restartGame();
+    });
+
+    // Começa o jogo
+    let timerId = setInterval(countdown, 1000);
     moveTarget();
   </script>
 
 </body>
 </html>
+

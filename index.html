@@ -51,7 +51,7 @@
 </head>
 <body>
 
-  <h1>Jogo do Quadrado Desafiador</h1>
+  <h1>Jogo do Quadrado</h1>
   <div id="gameArea">
     <div id="target"></div>
   </div>
@@ -89,16 +89,17 @@
 
     function updateTargetSize() {
       // O quadrado vai diminuindo de tamanho conforme a pontuação aumenta
-      let newSize = 50 - score * 2;
-      if (newSize < 20) newSize = 20; // tamanho mínimo
+      let newSize = 50 - score * 1.2;
+if (newSize < 30) newSize = 30; // tamanho mínimo
       target.style.width = newSize + 'px';
       target.style.height = newSize + 'px';
     }
 
     function updateMoveInterval() {
       // Quanto maior a pontuação, mais rápido o quadrado se move (intervalo menor)
-      moveInterval = 1000 - score * 30;
-      if (moveInterval < 300) moveInterval = 300; // velocidade máxima
+      moveInterval = 1200 - score * 20;
+if (moveInterval < 500) moveInterval = 500;
+ // velocidade máxima
       clearInterval(intervalId);
       intervalId = setInterval(moveTarget, moveInterval);
     }

@@ -77,18 +77,18 @@
     let pontos = 0;
     let vidas = 3;
     let tempo = 10;
-    let intervalo;
     let contador;
     let dificuldade = 'medio';
 
-    const tempos = {
-      facil: 2000,
-      medio: 1200,
-      dificil: 700
+    const temposPorModo = {
+      facil: 10,
+      medio: 6,
+      dificil: 3
     };
 
     function setarModo(modo) {
       dificuldade = modo;
+      tempo = temposPorModo[modo];
       resetarJogo();
     }
 
@@ -105,9 +105,8 @@
         somAcerto.play();
         pontos++;
         fase++;
-        tempo = 10;
+        tempo = temposPorModo[dificuldade];
         atualizarInfo();
-        clearTimeout(intervalo);
         clearInterval(contador);
         iniciarFase();
       };
@@ -126,37 +125,36 @@
       criarQuadrado();
 
       contador = setInterval(() => {
-  tempo--;
-  tempoSpan.textContent = tempo;
+        tempo--;
+        tempoSpan.textContent = tempo;
 
-  if (tempo <= 0) {
-    clearInterval(contador);
-    vidas--;
-    somErro.play();
-    if (vidas <= 0) {
-      somGameOver.play();
-      alert("💀 Game Over! Você fez " + pontos + " pontos.");
-      resetarJogo();
-    } else {
-      fase++;
-      tempo = 10;
-      atualizarInfo();
-      iniciarFase();
+        if (tempo <= 0) {
+          clearInterval(contador);
+          vidas--;
+          somErro.play();
+          if (vidas <= 0) {
+            somGameOver.play();
+            alert("💀 Game Over! Você fez " + pontos + " pontos.");
+            resetarJogo();
+          } else {
+            fase++;
+            tempo = temposPorModo[dificuldade];
+            atualizarInfo();
+            iniciarFase();
+          }
+        }
+      }, 1000);
     }
-  }
-}, 1000);
-
 
     function resetarJogo() {
       fase = 1;
       pontos = 0;
       vidas = 3;
-      tempo = 10;
+      tempo = temposPorModo[dificuldade];
       atualizarInfo();
       iniciarFase();
     }
   </script>
 </body>
 </html>
-
 

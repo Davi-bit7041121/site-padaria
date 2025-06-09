@@ -2,155 +2,161 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Jogo do Quadrado Desafiador</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Desafio do Quadrado Ninja</title>
   <style>
     body {
-      display: flex; justify-content: center; align-items: center;
-      height: 100vh; margin: 0; background: #282c34; color: white;
       font-family: Arial, sans-serif;
-      flex-direction: column;
+      background: #111;
+      color: #fff;
+      text-align: center;
     }
-    #gameArea {
+    #jogo {
+      width: 500px;
+      height: 500px;
+      background: #222;
+      margin: 20px auto;
       position: relative;
-      width: 300px; height: 300px;
-      background: #61dafb;
-      border-radius: 10px;
-      margin-bottom: 20px;
+      border: 3px solid lime;
     }
-    #target {
+    .quadrado {
+      width: 50px;
+      height: 50px;
+      background: red;
       position: absolute;
-      width: 50px; height: 50px;
-      background: #ff4757;
-      border-radius: 8px;
       cursor: pointer;
-      transition: width 0.3s, height 0.3s;
+      border-radius: 10px;
     }
-    #score, #timer {
-      font-size: 24px;
-      margin: 5px 0;
+    #info {
+      margin-top: 20px;
     }
-    #endScreen {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-    }
-    #restartBtn {
-      margin-top: 15px;
+    .btn-dificuldade {
+      margin: 10px;
       padding: 10px 20px;
-      font-size: 18px;
-      background-color: #4CAF50;
+      background: lime;
+      color: #000;
       border: none;
-      color: white;
-      border-radius: 5px;
       cursor: pointer;
-    }
-    #restartBtn:hover {
-      background-color: #45a049;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
+  <h1>🎯 Desafio do Quadrado Ninja</h1>
 
-  <h1>Jogo do Quadrado</h1>
-  <div id="gameArea">
-    <div id="target"></div>
+  <div>
+    <button class="btn-dificuldade" onclick="setarModo('facil')">Modo Fácil</button>
+    <button class="btn-dificuldade" onclick="setarModo('medio')">Modo Médio</button>
+    <button class="btn-dificuldade" onclick="setarModo('dificil')">Modo Difícil</button>
   </div>
-  <div id="score">Pontuação: 0</div>
-  <div id="timer">Tempo: 30s</div>
 
-  <div id="endScreen">
-    <h2>Fim do jogo!</h2>
-    <p id="finalScore"></p>
-    <button id="restartBtn">Jogar de novo</button>
+  <div id="jogo"></div>
+  <div id="info">
+    <p>Fase: <span id="fase">1</span></p>
+    <p>Pontos: <span id="pontos">0</span></p>
+    <p>Vidas: <span id="vidas">3</span></p>
+    <p>Tempo restante: <span id="tempo">10</span>s</p>
   </div>
+
+  <audio id="som-acerto" src="https://cdn.pixabay.com/audio/2022/03/15/audio_dbd167bf5b.mp3"></audio>
+  <audio id="som-erro" src="https://cdn.pixabay.com/audio/2022/03/15/audio_f94d93bf0f.mp3"></audio>
+  <audio id="som-gameover" src="https://cdn.pixabay.com/audio/2022/03/15/audio_89edfbef42.mp3"></audio>
 
   <script>
-    const target = document.getElementById('target');
-    const gameArea = document.getElementById('gameArea');
-    const scoreDisplay = document.getElementById('score');
-    const timerDisplay = document.getElementById('timer');
-    const endScreen = document.getElementById('endScreen');
-    const finalScore = document.getElementById('finalScore');
-    const restartBtn = document.getElementById('restartBtn');
+    const jogo = document.getElementById("jogo");
+    const faseSpan = document.getElementById("fase");
+    const pontosSpan = document.getElementById("pontos");
+    const vidasSpan = document.getElementById("vidas");
+    const tempoSpan = document.getElementById("tempo");
 
-    let score = 0;
-    let timeLeft = 30;
-    let intervalId;
-    let moveInterval = 1000; // intervalo inicial para mover o quadrado
+    const somAcerto = document.getElementById("som-acerto");
+    const somErro = document.getElementById("som-erro");
+    const somGameOver = document.getElementById("som-gameover");
 
-    function moveTarget() {
-      const maxX = gameArea.clientWidth - target.offsetWidth;
-      const maxY = gameArea.clientHeight - target.offsetHeight;
-      const randomX = Math.floor(Math.random() * maxX);
-      const randomY = Math.floor(Math.random() * maxY);
-      target.style.left = randomX + 'px';
-      target.style.top = randomY + 'px';
+    let fase = 1;
+    let pontos = 0;
+    let vidas = 3;
+    let tempo = 10;
+    let intervalo;
+    let contador;
+    let dificuldade = 'medio';
+
+    const tempos = {
+      facil: 2000,
+      medio: 1200,
+      dificil: 700
+    };
+
+    function setarModo(modo) {
+      dificuldade = modo;
+      resetarJogo();
     }
 
-    function updateTargetSize() {
-      // O quadrado vai diminuindo de tamanho conforme a pontuação aumenta
-      let newSize = 50 - score * 1.2;
-if (newSize < 30) newSize = 30; // tamanho mínimo
-      target.style.width = newSize + 'px';
-      target.style.height = newSize + 'px';
+    function criarQuadrado() {
+      jogo.innerHTML = "";
+      const quadrado = document.createElement("div");
+      quadrado.className = "quadrado";
+      const x = Math.floor(Math.random() * 450);
+      const y = Math.floor(Math.random() * 450);
+      quadrado.style.left = x + "px";
+      quadrado.style.top = y + "px";
+
+      quadrado.onclick = () => {
+        somAcerto.play();
+        pontos++;
+        fase++;
+        tempo = 10;
+        atualizarInfo();
+        clearTimeout(intervalo);
+        clearInterval(contador);
+        iniciarFase();
+      };
+
+      jogo.appendChild(quadrado);
     }
 
-    function updateMoveInterval() {
-      // Quanto maior a pontuação, mais rápido o quadrado se move (intervalo menor)
-      moveInterval = 1200 - score * 20;
-if (moveInterval < 500) moveInterval = 500;
- // velocidade máxima
-      clearInterval(intervalId);
-      intervalId = setInterval(moveTarget, moveInterval);
+    function atualizarInfo() {
+      faseSpan.textContent = fase;
+      pontosSpan.textContent = pontos;
+      vidasSpan.textContent = vidas;
+      tempoSpan.textContent = tempo;
     }
 
-    function gameOver() {
-      clearInterval(intervalId);
-      clearInterval(timerId);
-      target.style.display = 'none';
-      endScreen.style.display = 'flex';
-      finalScore.textContent = 'Sua pontuação final foi: ' + score;
-      timerDisplay.textContent = 'Tempo: 0s';
+    function iniciarFase() {
+      criarQuadrado();
+
+      intervalo = setTimeout(() => {
+        vidas--;
+        somErro.play();
+        if (vidas <= 0) {
+          somGameOver.play();
+          alert("💀 Game Over! Você fez " + pontos + " pontos.");
+          resetarJogo();
+        } else {
+          fase++;
+          tempo = 10;
+          atualizarInfo();
+          iniciarFase();
+        }
+      }, tempos[dificuldade]);
+
+      contador = setInterval(() => {
+        tempo--;
+        if (tempo <= 0) tempo = 0;
+        tempoSpan.textContent = tempo;
+      }, 1000);
     }
 
-    function restartGame() {
-      score = 0;
-      timeLeft = 30;
-      target.style.display = 'block';
-      endScreen.style.display = 'none';
-      scoreDisplay.textContent = 'Pontuação: ' + score;
-      timerDisplay.textContent = 'Tempo: ' + timeLeft + 's';
-      updateTargetSize();
-      moveTarget();
-      updateMoveInterval();
-      timerId = setInterval(countdown, 1000);
+    function resetarJogo() {
+      fase = 1;
+      pontos = 0;
+      vidas = 3;
+      tempo = 10;
+      atualizarInfo();
+      iniciarFase();
     }
-
-    function countdown() {
-      timeLeft--;
-      timerDisplay.textContent = 'Tempo: ' + timeLeft + 's';
-      if (timeLeft <= 0) {
-        gameOver();
-      }
-    }
-
-    target.addEventListener('click', () => {
-      score++;
-      scoreDisplay.textContent = 'Pontuação: ' + score;
-      updateTargetSize();
-      updateMoveInterval();
-      moveTarget();
-    });
-
-    restartBtn.addEventListener('click', () => {
-      restartGame();
-    });
-
-    // Começa o jogo
-    let timerId = setInterval(countdown, 1000);
-    moveTarget();
   </script>
-
 </body>
 </html>
+
 

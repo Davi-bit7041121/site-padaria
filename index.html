@@ -125,27 +125,27 @@
     function iniciarFase() {
       criarQuadrado();
 
-      intervalo = setTimeout(() => {
-        vidas--;
-        somErro.play();
-        if (vidas <= 0) {
-          somGameOver.play();
-          alert("💀 Game Over! Você fez " + pontos + " pontos.");
-          resetarJogo();
-        } else {
-          fase++;
-          tempo = 10;
-          atualizarInfo();
-          iniciarFase();
-        }
-      }, tempos[dificuldade]);
-
       contador = setInterval(() => {
-        tempo--;
-        if (tempo <= 0) tempo = 0;
-        tempoSpan.textContent = tempo;
-      }, 1000);
+  tempo--;
+  tempoSpan.textContent = tempo;
+
+  if (tempo <= 0) {
+    clearInterval(contador);
+    vidas--;
+    somErro.play();
+    if (vidas <= 0) {
+      somGameOver.play();
+      alert("💀 Game Over! Você fez " + pontos + " pontos.");
+      resetarJogo();
+    } else {
+      fase++;
+      tempo = 10;
+      atualizarInfo();
+      iniciarFase();
     }
+  }
+}, 1000);
+
 
     function resetarJogo() {
       fase = 1;
